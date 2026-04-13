@@ -12,6 +12,9 @@ on:
 jobs:
   deploy-agente-macro-cf:
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     steps:
       - name: Formatear código (Checkout Action)
         uses: actions/checkout@v3
