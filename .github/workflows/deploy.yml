@@ -16,13 +16,14 @@ jobs:
       - name: Formatear código (Checkout Action)
         uses: actions/checkout@v3
 
-      # Configurar la autenticación hacia Google Cloud mediante cuenta de servicio
-      # Las llaves deben guardarse en Github Actions (Settings -> Secrets & variables)
+      # Configurar la autenticación sin llaves usando Workload Identity Federation
+      # Esto requiere configurar los secretos WIF_PROVIDER y WIF_SERVICE_ACCOUNT
       - name: Auth contra GCP
         id: 'auth'
-        uses: 'google-github-actions/auth@v1'
+        uses: 'google-github-actions/auth@v2'
         with:
-          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+          workload_identity_provider: '${{ secrets.WIF_PROVIDER }}'
+          service_account: '${{ secrets.WIF_SERVICE_ACCOUNT }}'
 
       # Desplegar la función en Google Cloud Functions (Gen 2 preferentemente) usando gcloud
       - name: Desplegar Agente Macro
