@@ -1,0 +1,40 @@
+name: Deploy Cloud Functions to GCP
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      # Única y exclusivamente re-desplegar si cambia algo sobre este agente
+      - 'agents/cloud_functions/agente_macro/**'
+      # - 'agents/cloud_functions/otro_agente_scrapper/**'
+
+jobs:
+  deploy-agente-macro-cf:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Formatear código (Checkout Action)
+        uses: actions/checkout@v3
+
+      # Configurar la autenticación hacia Google Cloud mediante cuenta de servicio
+      # Las llaves deben guardarse en Github Actions (Settings -> Secrets & variables)
+      - name: Auth contra GCP
+        id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      # Desplegar la función en Google Cloud Functions (Gen 2 preferentemente) usando gcloud
+      - name: Desplegar Agente Macro
+        id: 'deploy-agente-macro'
+        uses: 'google-github-actions/deploy-cloud-functions@v1'
+        with:
+          name: 'agente-macro-fn'
+          runtime: 'python311'
+          entry_point: 'ejecutar_agente_macro'
+          region: 'us-central1'
+          source_dir: 'agents/cloud_functions/agente_macro'
+          # Asignar variables de entorno (En producción usar Secret Manager de GCP o este aproach)
+          env_vars: |
+            SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+            SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
