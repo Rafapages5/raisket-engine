@@ -20,6 +20,9 @@ jobs:
       - name: Formatear código (Checkout Action)
         uses: actions/checkout@v3
 
+      - name: Inyectar código compartido (shared)
+        run: cp -r shared agents/cloud_functions/agente_macro/
+
       # Configurar la autenticación sin llaves usando Workload Identity Federation
       # Esto requiere configurar los secretos WIF_PROVIDER y WIF_SERVICE_ACCOUNT
       - name: Auth contra GCP
