@@ -1,0 +1,14 @@
+# Directorios de entorno virtual
+.venv/
+venv/
+env/
+
+# Archivos de entorno y secretos
+.env
+.env.local
+*.json # Omitir archivos JSON locales (como las credenciales de Service Account local en desarrollo)
+
+# Variables de python y directorios de build
+__pycache__/
+*.pyc
+.pytest_cache/

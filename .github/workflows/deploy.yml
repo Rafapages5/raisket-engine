@@ -8,6 +8,7 @@ on:
       # Única y exclusivamente re-desplegar si cambia algo sobre este agente
       - 'agents/cloud_functions/agente_macro/**'
       # - 'agents/cloud_functions/otro_agente_scrapper/**'
+  workflow_dispatch: # Permite ejecutar el workflow manualmente desde la interfaz web
 
 jobs:
   deploy-agente-macro-cf:
