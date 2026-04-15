@@ -36,8 +36,13 @@ jobs:
       - name: Setup gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Configurar Docker para Artifact Registry
-        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+      - name: Debug - verificar cuenta activa en gcloud
+        run: |
+          gcloud auth list
+          gcloud config get-value project
+
+      - name: Login a Artifact Registry via access token
+        run: gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin ${{ env.GCP_REGION }}-docker.pkg.dev
 
       - name: Construir y publicar imagen Docker
         id: build-image
