@@ -28,6 +28,19 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v4
 
+      - name: Diagnóstico de Cuenta de Servicio
+        run: |
+          EXPECTED="github-actions-deployer@raisket-engine.iam.gserviceaccount.com"
+          ACTUAL="${{ secrets.WIF_SERVICE_ACCOUNT }}"
+          if [ "$ACTUAL" == "$EXPECTED" ]; then
+            echo "✅ El secreto WIF_SERVICE_ACCOUNT coincide con la cuenta esperada."
+          else
+            echo "❌ ERROR: El secreto no coincide."
+            echo "El secreto configurado tiene una longitud de ${#ACTUAL} caracteres."
+            exit 1
+          fi
+
+
       - name: Auth contra GCP (sin llaves via WIF)
         id: auth
         uses: google-github-actions/auth@v2
