@@ -1,5 +1,7 @@
 # Extiende la imagen oficial de n8n
-FROM docker.n8n.io/n8nio/n8n:latest
+# n8n Docker Image
+# Trigger: Manual verification of WIF permissions
+FROM n8nio/n8n:latest
 
 # Instalar dependencias adicionales de sistema que tu orquestador pueda necesitar.
 # Al cambiar de usuario a root temporalmente, se pueden instalar paquetes de alpine o python.
