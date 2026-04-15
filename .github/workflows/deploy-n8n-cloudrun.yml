@@ -78,6 +78,7 @@ jobs:
             --timeout=3600
             --port=5678
           env_vars: |
+            N8N_PORT=5678
             DB_TYPE=postgresdb
             DB_POSTGRESDB_HOST=db.gwiyvnxlhbcipxpjhfvo.supabase.co
             DB_POSTGRESDB_PORT=5432
