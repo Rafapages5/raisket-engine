@@ -1,4 +1,5 @@
 name: Deploy n8n a Cloud Run
+# Trigger: Manual verification of WIF permissions
 
 on:
   push:
