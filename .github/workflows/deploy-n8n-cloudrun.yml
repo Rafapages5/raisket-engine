@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout código
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Auth contra GCP (sin llaves via WIF)
         id: auth
@@ -33,6 +33,9 @@ jobs:
           workload_identity_provider: '${{ secrets.WIF_PROVIDER }}'
           service_account: '${{ secrets.WIF_SERVICE_ACCOUNT }}'
           token_format: 'access_token'
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
 
       - name: Login a Artifact Registry con access token
         uses: docker/login-action@v3
