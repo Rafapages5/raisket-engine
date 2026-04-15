@@ -1,28 +1,12 @@
 version: '3.8'
 
+# Postgres local eliminado: n8n ahora usa Supabase como base de datos.
+# Para desarrollo local, asegúrate de tener SUPABASE_DB_HOST y SUPABASE_DB_PASSWORD en tu .env
+
 volumes:
-  db_storage:
   n8n_storage:
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: raisket_n8n_postgres
-    restart: always
-    environment:
-      - POSTGRES_USER
-      - POSTGRES_PASSWORD
-      - POSTGRES_DB
-    volumes:
-      - db_storage:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   n8n:
     build:
       context: .
@@ -30,21 +14,20 @@ services:
     container_name: raisket_n8n_engine
     restart: always
     environment:
+      # --- Base de datos: Supabase PostgreSQL ---
       - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_HOST=${SUPABASE_DB_HOST}
       - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
-      - DB_POSTGRESDB_USER=${POSTGRES_USER}
-      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_POSTGRESDB_DATABASE=postgres
+      - DB_POSTGRESDB_USER=postgres
+      - DB_POSTGRESDB_PASSWORD=${SUPABASE_DB_PASSWORD}
+      - DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED=false
+      # --- Autenticación y configuración n8n ---
       - N8N_BASIC_AUTH_ACTIVE
       - N8N_BASIC_AUTH_USER
       - N8N_BASIC_AUTH_PASSWORD
+      - N8N_ENCRYPTION_KEY
     ports:
       - "5678:5678"
-    links:
-      - postgres
-    depends_on:
-      postgres:
-        condition: service_healthy
     volumes:
       - n8n_storage:/home/node/.n8n

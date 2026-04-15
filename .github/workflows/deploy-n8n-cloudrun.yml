@@ -1,0 +1,77 @@
+name: Deploy n8n a Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'n8n/**'
+  workflow_dispatch: # Permite lanzarlo manualmente desde GitHub
+
+env:
+  GCP_PROJECT_ID: raisket-engine
+  GCP_REGION: us-central1
+  SERVICE_NAME: raisket-n8n-engine
+  REPO_NAME: raisket-docker # Artifact Registry repository (crearlo una vez en GCP)
+  IMAGE_NAME: n8n-engine
+
+jobs:
+  deploy-n8n-cloudrun:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Requerido para Workload Identity Federation
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+
+      - name: Auth contra GCP (sin llaves via WIF)
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: '${{ secrets.WIF_PROVIDER }}'
+          service_account: '${{ secrets.WIF_SERVICE_ACCOUNT }}'
+
+      - name: Configurar Docker para Artifact Registry
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Construir y publicar imagen Docker
+        id: build-image
+        run: |
+          IMAGE_URI="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          docker build -t $IMAGE_URI ./n8n
+          docker push $IMAGE_URI
+          echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
+
+      - name: Desplegar a Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image "${{ steps.build-image.outputs.image_uri }}" \
+            --region ${{ env.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --min-instances 1 \
+            --memory 1Gi \
+            --cpu 1 \
+            --timeout 3600 \
+            --port 5678 \
+            --set-env-vars="DB_TYPE=postgresdb" \
+            --set-env-vars="DB_POSTGRESDB_HOST=db.gwiyvnxlhbcipxpjhfvo.supabase.co" \
+            --set-env-vars="DB_POSTGRESDB_PORT=5432" \
+            --set-env-vars="DB_POSTGRESDB_DATABASE=postgres" \
+            --set-env-vars="DB_POSTGRESDB_USER=postgres" \
+            --set-env-vars="DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED=false" \
+            --set-env-vars="N8N_BASIC_AUTH_ACTIVE=true" \
+            --set-env-vars="DB_POSTGRESDB_PASSWORD=${{ secrets.SUPABASE_DB_PASSWORD }}" \
+            --set-env-vars="N8N_BASIC_AUTH_USER=${{ secrets.N8N_BASIC_AUTH_USER }}" \
+            --set-env-vars="N8N_BASIC_AUTH_PASSWORD=${{ secrets.N8N_BASIC_AUTH_PASSWORD }}" \
+            --set-env-vars="N8N_ENCRYPTION_KEY=${{ secrets.N8N_ENCRYPTION_KEY }}" \
+            --project ${{ env.GCP_PROJECT_ID }}
+
+      - name: Mostrar URL del servicio desplegado
+        run: |
+          gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.GCP_REGION }} \
+            --format "value(status.url)" \
+            --project ${{ env.GCP_PROJECT_ID }}
