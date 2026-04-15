@@ -1,6 +1,6 @@
 # Extiende la imagen oficial de n8n
 # n8n Docker Image
-# Trigger: Manual verification of WIF permissions
+# Trigger: New attempt with improved IAM permissions (2026-04-15)
 FROM n8nio/n8n:latest
 
 # Instalar dependencias adicionales de sistema que tu orquestador pueda necesitar.
